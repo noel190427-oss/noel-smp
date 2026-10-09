@@ -30,33 +30,8 @@ function getWsUrl(token) {
   return `${protocol}//${window.location.host}?token=${encodeURIComponent(token)}`;
 }
 
-function checkAndDisplayBackendBar() {
-  const isExternal = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
-  const bar = document.getElementById('serverEndpointBar');
-  const display = document.getElementById('currentBackendDisplay');
-  if (bar && isExternal) {
-    bar.style.display = 'block';
-    if (display) display.textContent = getApiBase() || 'http://localhost:3000';
-  }
-}
-
-function promptChangeBackend() {
-  const current = getApiBase();
-  const input = prompt('Gib die Adresse deines laufenden Minecraft-Webservers ein:\n(z.B. http://localhost:3000 oder deine IP http://192.168.2.165:3000)', current);
-  if (input !== null) {
-    const clean = input.trim();
-    if (clean) {
-      localStorage.setItem('mc_backend_url', clean);
-    } else {
-      localStorage.removeItem('mc_backend_url');
-    }
-    window.location.reload();
-  }
-}
-
 // Initial Setup
 document.addEventListener('DOMContentLoaded', async () => {
-  checkAndDisplayBackendBar();
   if (authToken) {
     const isValid = await verifyToken(authToken);
     if (isValid) {
