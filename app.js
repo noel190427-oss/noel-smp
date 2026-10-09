@@ -5,13 +5,49 @@ let currentAcAlerts = [];
 let selectedPlayerForAction = null;
 let authToken = localStorage.getItem('mc_admin_token') || sessionStorage.getItem('mc_admin_token') || null;
 
+let activeBackendUrl = localStorage.getItem('mc_backend_url') || '';
+
 function getApiBase() {
-  const custom = localStorage.getItem('mc_backend_url');
-  if (custom) return custom.replace(/\/$/, '');
+  if (activeBackendUrl) return activeBackendUrl.replace(/\/$/, '');
   if (window.location.hostname.includes('github.io') || window.location.protocol === 'file:') {
-    return 'http://localhost:3000';
+    // If on mobile / external GitHub Pages, use the server PC's network address first, then localhost
+    return 'http://192.168.2.165:3000';
   }
   return '';
+}
+
+async function autoDiscoverBackend() {
+  if (!window.location.hostname.includes('github.io') && window.location.protocol !== 'file:') {
+    return;
+  }
+  if (localStorage.getItem('mc_backend_url')) {
+    activeBackendUrl = localStorage.getItem('mc_backend_url');
+    return;
+  }
+
+  const candidateEndpoints = [
+    'http://192.168.2.165:3000',
+    'http://localhost:3000',
+    'http://noelsmp.duckdns.org:3000'
+  ];
+
+  for (const url of candidateEndpoints) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1800);
+      const res = await fetch(`${url}/api/auth/verify`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (res.status === 401 || res.status === 200 || res.status === 403) {
+        activeBackendUrl = url;
+        localStorage.setItem('mc_backend_url', url);
+        return;
+      }
+    } catch (e) {}
+  }
 }
 
 function getApiUrl(url) {
@@ -32,6 +68,7 @@ function getWsUrl(token) {
 
 // Initial Setup
 document.addEventListener('DOMContentLoaded', async () => {
+  await autoDiscoverBackend();
   if (authToken) {
     const isValid = await verifyToken(authToken);
     if (isValid) {
