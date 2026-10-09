@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft 24/7 Crossplay Dashboard, Shop & Anti-Cheat</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- AUTH SCREEN (Login & Register) -->
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo-box">⛏️</div>
+        <h2 id="authTitle">Admin & Freunde Login</h2>
+        <p id="authSubtitle" class="text-muted">Melde dich an, um den Minecraft Server zu steuern.</p>
+      </div>
+
+      <!-- Auth Mode Switcher -->
+      <div class="auth-toggle">
+        <button id="tabBtnLogin" class="auth-toggle-btn active" onclick="switchAuthMode('login')">Anmelden</button>
+        <button id="tabBtnRegister" class="auth-toggle-btn" onclick="switchAuthMode('register')">Konto registrieren</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>E-Mail-Adresse</label>
+          <input type="email" id="loginEmail" placeholder="Noel190427@gmail.com" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label>Passwort</label>
+          <input type="password" id="loginPassword" placeholder="••••••••••••" required autocomplete="current-password">
+        </div>
+
+        <div class="login-options">
+          <label class="checkbox-container">
+            <input type="checkbox" id="rememberMe" checked>
+            <span>Angemeldet bleiben</span>
+          </label>
+        </div>
+
+        <div id="loginError" class="login-error hidden"></div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn btn-primary btn-block">
+          <span>🔐 Jetzt Anmelden</span>
+        </button>
+      </form>
+
+      <!-- REGISTER FORM (Hidden by default) -->
+      <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>E-Mail-Adresse (von dir oder deinem Freund)</label>
+          <input type="email" id="regEmail" placeholder="freund@gmail.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <label>Neues Passwort festlegen</label>
+          <input type="password" id="regPassword" placeholder="Mindestens 4 Zeichen" required autocomplete="new-password">
+        </div>
+
+        <div class="form-group">
+          <label>Passwort wiederholen</label>
+          <input type="password" id="regPasswordConfirm" placeholder="Passwort bestätigen" required autocomplete="new-password">
+        </div>
+
+        <div class="login-options">
+          <label class="checkbox-container">
+            <input type="checkbox" id="regRememberMe" checked>
+            <span>Zugangsdaten merken</span>
+          </label>
+        </div>
+
+        <div id="regError" class="login-error hidden"></div>
+
+        <button type="submit" id="btnRegSubmit" class="btn btn-success btn-block">
+          <span>🚀 Neues Konto erstellen & Einloggen</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD (Hidden until logged in) -->
+  <div id="dashboardApp" class="app-container hidden">
+    <!-- Top Emergency Banner (Hidden by default) -->
+    <div id="emergencyBanner" class="emergency-banner hidden">
+      <div class="emergency-banner-content">
+        <span class="emergency-icon-pulse">🚨</span>
+        <div>
+          <strong>NOT-AUS AKTIV: DER SERVER WURDE SOFORT ZWANGSBEENDET!</strong>
+          <p>Alle Spieler wurden getrennt und Prozesse gekillt. Auto-Restart ist pausiert.</p>
+        </div>
+      </div>
+      <button class="btn btn-success btn-sm" onclick="startServer()">✅ Entsperren & Server Starten</button>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="logo-box">⛏️</div>
+        <div>
+          <h1 class="logo-title">MC Crossplay Core</h1>
+          <span class="logo-sub">24/7 Java, Bedrock, Shop & Admin</span>
+        </div>
+      </div>
+      
+      <div class="nav-status-group">
+        <div id="serverStatusBadge" class="status-badge status-stopped">
+          <span class="status-dot"></span>
+          <span id="statusText">Offline</span>
+        </div>
+
+        <div class="server-controls">
+          <button id="btnStart" class="btn btn-success" onclick="startServer()">
+            <span>▶️ Starten</span>
+          </button>
+          <button id="btnRestart" class="btn btn-warning" onclick="restartServer()">
+            <span>🔄 Neustart</span>
+          </button>
+          <button id="btnStop" class="btn btn-secondary" onclick="stopServer()">
+            <span>⏹️ Stopp</span>
+          </button>
+          <!-- NOT-AUS BUTTON -->
+          <button id="btnEmergency" class="btn btn-emergency" onclick="openEmergencyModal()">
+            <span>🚨 NOT-AUS</span>
+          </button>
+        </div>
+
+        <!-- User Profile & Logout -->
+        <div class="user-profile-menu">
+          <span id="userEmailBadge" class="user-badge">Admin</span>
+          <button class="btn btn-secondary btn-sm" onclick="handleLogout()" title="Abmelden">🚪 Abmelden</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon">👥</div>
+          <div class="metric-info">
+            <span class="metric-label">Online Spieler</span>
+            <span id="metricPlayerCount" class="metric-val">0 / ∞</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🛍️</div>
+          <div class="metric-info">
+            <span class="metric-label">In-Game Shop</span>
+            <span class="metric-val text-success">/shop Aktiv</span>
+            <span class="metric-sub">Alle Items kaufen & verkaufen</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">👑</div>
+          <div class="metric-info">
+            <span class="metric-label">Rechte & Cheats</span>
+            <span class="metric-val">Nur Panel-Admins</span>
+            <span class="metric-sub">Cheats für normale Spieler blockiert</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon">🛡️</div>
+          <div class="metric-info">
+            <span class="metric-label">GrimAC Anti-Cheat</span>
+            <span class="metric-val text-success">Geschützt</span>
+            <span class="metric-sub">Fly, Speed, KillAura Schutz</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('players')">
+          <span>👥 Spieler & Rechte-Vergabe (<span id="tabPlayerBadge">0</span>)</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('shopinfo')">
+          <span>🛍️ In-Game Shop (/shop)</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('anticheat')">
+          <span>🛡️ Anti-Cheat (<span id="tabAcBadge">0</span>)</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('bans')">
+          <span>🚫 Bann-Liste (<span id="tabBanBadge">0</span>)</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('settings247')">
+          <span>⚙️ 24/7 & Not-Abschaltung</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('updater')">
+          <span>🔄 Auto-Updater</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('console')">
+          <span>💻 Live Konsole & Chat</span>
+        </button>
+      </div>
+
+      <!-- TAB: PLAYERS & RANK MANAGEMENT -->
+      <section id="tab-players" class="tab-panel active">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Aktive Spieler & Rechteverwaltung</h2>
+              <p class="text-muted">Normale Spieler haben keine Cheats. Hier kannst du Spielern Admin/Owner-Rechte (OP) geben, Spielmodi ändern oder Coins überweisen.</p>
+            </div>
+            <div class="quick-broadcast">
+              <input type="text" id="quickMsgInput" placeholder="Nachricht an alle Spieler senden..." onkeydown="if(event.key==='Enter') sendBroadcast()">
+              <button class="btn btn-primary" onclick="sendBroadcast()">Senden</button>
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Spielername</th>
+                  <th>Rang</th>
+                  <th>Plattform</th>
+                  <th>IP</th>
+                  <th style="text-align: right;">Admin-Aktionen</th>
+                </tr>
+              </thead>
+              <tbody id="playerTableBody">
+                <tr class="empty-row">
+                  <td colspan="6">
+                    <div class="empty-state">
+                      <span class="empty-icon">🎮</span>
+                      <p>Aktuell sind keine Spieler online.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- NAMETAG & PRÄFIX MANAGER CARD -->
+        <div class="panel-card" style="margin-top: 20px;">
+          <div class="panel-header">
+            <div>
+              <h2>🏷️ Eigene Nametags & Präfixe vergeben</h2>
+              <p class="text-muted">Vergib Spielern eigene Titel, Ränge und Farben über dem Kopf, im Chat und im Tab-Menü mit Standard-Klammern <code>[ ... ]</code> und Farbcodes.</p>
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 2fr auto; gap: 12px; align-items: flex-end; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600;">Spielername:</label>
+              <input type="text" id="quickTagPlayer" placeholder="z. B. Noel190427" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-size: 0.95rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px; font-weight: 600;">Nametag / Präfix:</label>
+              <input type="text" id="quickTagInput" placeholder="&8[&6👑 OWNER&8] &e" oninput="updateTagPreview('quickTagInput', 'quickTagPreview')" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 6px; font-size: 0.95rem; font-family: monospace;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-primary" onclick="applyQuickNametag()" style="padding: 10px 16px;">🏷️ Nametag anwenden</button>
+              <button class="btn btn-secondary" onclick="resetQuickNametag()" style="padding: 10px 12px;" title="Nametag entfernen">🔄 Reset</button>
+            </div>
+          </div>
+
+          <!-- Live Preview & Presets -->
+          <div style="padding: 16px; background: rgba(0,0,0,0.35); border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Live-Vorschau im Spiel & Chat:</span>
+              <span id="quickTagPreview" style="font-size: 1.1rem; font-weight: bold; font-family: 'Minecraft', sans-serif;">[👑 OWNER] Spieler</span>
+            </div>
+            
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Schnell-Vorlagen [Beispiele]:</span>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&6&l👑 OWNER&8] &e')">👑 [OWNER]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&c&l🛡️ ADMIN&8] &c')">🛡️ [ADMIN]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&a&l⭐ VIP&8] &a')">⭐ [VIP]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&b&l🔥 MVP&8] &b')">🔥 [MVP]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&e&l⚔️ CHAMP&8] &e')">⚔️ [CHAMP]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&d&l⚡ KING&8] &d')">⚡ [KING]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&3&l💎 RICH&8] &b')">💎 [RICH]</button>
+              <button class="btn btn-sm btn-secondary" onclick="setPresetTag('quickTagInput', '&8[&7🎮 SPIELER&8] &7')">🎮 [SPIELER]</button>
+              <button class="btn btn-sm btn-secondary" onclick="insertColorCode('quickTagInput', '&8[&fTAG&8] &f')">[ Eigener Tag ]</button>
+            </div>
+
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">Farben & Stile:</span>
+              <button class="btn btn-sm" style="background: #eab308; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&6')">&6 Gold</button>
+              <button class="btn btn-sm" style="background: #ef4444; color: white; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&c')">&c Rot</button>
+              <button class="btn btn-sm" style="background: #22c55e; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&a')">&a Grün</button>
+              <button class="btn btn-sm" style="background: #06b6d4; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&b')">&b Aqua</button>
+              <button class="btn btn-sm" style="background: #ec4899; color: white; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&d')">&d Pink</button>
+              <button class="btn btn-sm" style="background: #facc15; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&e')">&e Gelb</button>
+              <button class="btn btn-sm" style="background: #ffffff; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&f')">&f Weiß</button>
+              <button class="btn btn-sm" style="background: #94a3b8; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&7')">&7 Grau</button>
+              <button class="btn btn-sm" style="background: #1e293b; color: white; border: 1px solid #475569; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&8')">&8 Dunkelgrau</button>
+              <button class="btn btn-sm btn-secondary" onclick="insertColorCode('quickTagInput', '&l')"><b>&l Fett</b></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: SHOP INFO -->
+      <section id="tab-shopinfo" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>🛍️ In-Game Shop System (/shop)</h2>
+              <p class="text-muted">Deine Spieler können im Spiel mit Münzen/Coins alle Items kaufen und verkaufen.</p>
+            </div>
+          </div>
+
+          <div class="updater-grid">
+            <div class="updater-box">
+              <h3>📦 Verfügbare Shop-Befehle im Spiel</h3>
+              <ul class="version-list">
+                <li>
+                  <span class="version-name"><code class="font-mono text-highlight">/shop</code></span>
+                  <span>Öffnet das interaktive Menü mit allen Kategorien</span>
+                </li>
+                <li>
+                  <span class="version-name"><code class="font-mono text-highlight">/balance</code> oder <code class="font-mono text-highlight">/money</code></span>
+                  <span>Eigenen Kontostand abfragen</span>
+                </li>
+                <li>
+                  <span class="version-name"><code class="font-mono text-highlight">/pay &lt;Spieler&gt; &lt;Betrag&gt;</code></span>
+                  <span>Anderen Spielern Münzen überweisen</span>
+                </li>
+                <li>
+                  <span class="version-name"><code class="font-mono text-highlight">/sell gui</code></span>
+                  <span>Items aus dem Inventar für Geld verkaufen</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="updater-box">
+              <h3>💎 Schnelle Coins-Vergabe an Spieler</h3>
+              <p class="text-muted" style="margin-bottom: 12px;">Überweise einem Spieler direkt vom Web-Dashboard aus Startguthaben:</p>
+              <div style="display: flex; gap: 8px; flex-direction: column;">
+                <input type="text" id="quickCoinPlayer" placeholder="Spielername eingeben..." style="background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: 6px;">
+                <div style="display: flex; gap: 8px;">
+                  <input type="number" id="quickCoinAmount" value="5000" placeholder="Betrag..." style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 12px; border-radius: 6px;">
+                  <button class="btn btn-success" onclick="giveQuickCoins()">💰 Coins geben</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: ANTI-CHEAT -->
+      <section id="tab-anticheat" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>🛡️ GrimAC Anti-Cheat Überwachung</h2>
+              <p class="text-muted">Echtzeit-Erkennung von Hacking-Versuchen (Fly, Speed, Killaura, Reach, NoFall, BadPackets).</p>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="clearAcAlerts()">Meldungen leeren</button>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Uhrzeit</th>
+                  <th>Verdächtiger Spieler</th>
+                  <th>Erkannter Cheat / Modul</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Sofort-Aktion</th>
+                </tr>
+              </thead>
+              <tbody id="acTableBody">
+                <tr class="empty-row">
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <span class="empty-icon">✨</span>
+                      <p>Keine verdächtigen Aktivitäten erkannt. Alle Spieler spielen fair!</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: BANS -->
+      <section id="tab-bans" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Gebannte Spieler</h2>
+              <p class="text-muted">Übersicht aller gesperrten Accounts.</p>
+            </div>
+            <button class="btn btn-secondary" onclick="openCustomBanModal()">+ Spieler manuell bannen</button>
+          </div>
+
+          <div class="table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Spieler</th>
+                  <th>Grund</th>
+                  <th>Gebannt am</th>
+                  <th>Gebannt von</th>
+                  <th style="text-align: right;">Aktion</th>
+                </tr>
+              </thead>
+              <tbody id="banTableBody">
+                <tr class="empty-row">
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <span class="empty-icon">🛡️</span>
+                      <p>Keine gebannten Spieler vorhanden.</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: 24/7 & NOT-AUS SETTINGS -->
+      <section id="tab-settings247" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>⚡ 24/7 Dauerbetrieb & Not-Abschaltung</h2>
+              <p class="text-muted">Konfiguration der Hochverfügbarkeit und der Notfall-Mechanismen.</p>
+            </div>
+          </div>
+
+          <div class="updater-grid">
+            <div class="updater-box">
+              <h3>🔄 24/7 Watchdog System</h3>
+              <div class="form-group-switch">
+                <label class="switch">
+                  <input type="checkbox" id="toggle247" onchange="toggle247Mode(this.checked)" checked>
+                  <span class="slider"></span>
+                </label>
+                <div>
+                  <strong>24/7 Auto-Recovery Modus</strong>
+                  <p class="text-muted">Startet den Minecraft-Server nach einem unerwarteten Absturz oder Server-Lag innerhalb von 5 Sekunden automatisch neu.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="updater-box" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05);">
+              <h3 style="color: #f87171;">🚨 Manueller Not-Abschaltknopf (Kill Switch)</h3>
+              <p class="text-muted" style="margin-bottom: 16px;">
+                Beendet den Server-Prozess im Notfall (z. B. bei schwerem Griefing, Exploit-Angriffen oder Lag-Maschinen) sofort hart und pausiert den Auto-Restart.
+              </p>
+              <button class="btn btn-danger" style="width: 100%; justify-content: center; padding: 12px; font-size: 1rem;" onclick="openEmergencyModal()">
+                🚨 JETZT NOT-AUS AUSLÖSEN
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: UPDATER -->
+      <section id="tab-updater" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Automatische Updates & Versions-Verwaltung</h2>
+              <p class="text-muted">Dein Server hält sich bei neuen Minecraft-Versionen und Plugin-Updates automatisch aktuell.</p>
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-secondary" onclick="checkForUpdates()">🔍 Jetzt prüfen</button>
+              <button class="btn btn-primary" onclick="applyUpdate(true)">⚡ Update erzwingen</button>
+            </div>
+          </div>
+
+          <div class="updater-grid">
+            <div class="updater-box">
+              <h3>📦 Installierte Software-Komponenten</h3>
+              <ul class="version-list">
+                <li>
+                  <span class="version-name">Minecraft Server Core:</span>
+                  <strong id="paperVerLabel">1.21.x</strong>
+                </li>
+                <li>
+                  <span class="version-name">EconomyShopGUI (/shop):</span>
+                  <strong class="text-success">Aktiv</strong>
+                </li>
+                <li>
+                  <span class="version-name">EssentialsX & Vault Economy:</span>
+                  <strong class="text-success">Aktiv</strong>
+                </li>
+                <li>
+                  <span class="version-name">GeyserMC (Bedrock Bridge):</span>
+                  <strong id="geyserVerLabel">Build aktiv</strong>
+                </li>
+                <li>
+                  <span class="version-name">GrimAC (Anti-Cheat Engine):</span>
+                  <strong id="grimVerLabel">Aktiviert</strong>
+                </li>
+              </ul>
+            </div>
+
+            <div class="updater-box">
+              <h3>⚙️ Auto-Update Einstellungen</h3>
+              <div class="form-group-switch">
+                <label class="switch">
+                  <input type="checkbox" id="autoUpdateToggle" onchange="toggleAutoUpdate(this.checked)" checked>
+                  <span class="slider"></span>
+                </label>
+                <div>
+                  <strong>Automatische Updates aktivieren</strong>
+                  <p class="text-muted">Prüft alle 60 Minuten im Hintergrund auf neue Minecraft-Versionen und aktualisiert den Server.</p>
+                </div>
+              </div>
+
+              <div id="updateNoticeBox" class="update-notice hidden">
+                <div class="notice-icon">🎉</div>
+                <div class="notice-text">
+                  <strong id="updateNoticeTitle">Neues Update verfügbar!</strong>
+                  <p id="updateNoticeDesc">Eine neuere Version wurde erkannt.</p>
+                </div>
+                <button class="btn btn-success btn-sm" onclick="applyUpdate(false)">Jetzt aktualisieren</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: CONSOLE -->
+      <section id="tab-console" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>Server Live-Konsole & Chat</h2>
+              <p class="text-muted">Echtzeit-Ausgabe der Server-Logs und direkte Befehlseingabe.</p>
+            </div>
+            <button class="btn btn-sm btn-secondary" onclick="clearConsoleLogs()">Logs leeren</button>
+          </div>
+
+          <div class="console-box" id="consoleOutput"></div>
+
+          <div class="console-input-row">
+            <span class="prompt">></span>
+            <input type="text" id="cmdInput" placeholder="Befehl eingeben (z. B. op MeinName, time set day, weather clear)..." onkeydown="if(event.key==='Enter') sendCommand()">
+            <button class="btn btn-primary" onclick="sendCommand()">Ausführen</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODAL: GAMEMODE -->
+    <div id="modalGamemode" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🎮 Spielmodus ändern</h3>
+          <button class="modal-close" onclick="closeModal('modalGamemode')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Wähle den Spielmodus für <strong id="gmPlayerName" class="text-highlight">Spieler</strong>:</p>
+          <div class="form-group">
+            <select id="gmSelect" style="width: 100%; background: var(--bg-subtle); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 6px;">
+              <option value="survival">Survival (Überleben)</option>
+              <option value="creative">Creative (Kreativ / Unendlich Blöcke)</option>
+              <option value="adventure">Adventure (Abenteuer)</option>
+              <option value="spectator">Spectator (Zuschauer / Durch Wände fliegen)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modalGamemode')">Abbrechen</button>
+          <button class="btn btn-primary" onclick="confirmGamemode()">Modus anwenden</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: GIVE COINS -->
+    <div id="modalCoins" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>💰 Coins überweisen</h3>
+          <button class="modal-close" onclick="closeModal('modalCoins')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Wie viele Coins möchtest du <strong id="coinsPlayerName" class="text-highlight">Spieler</strong> gutschreiben?</p>
+          <div class="form-group">
+            <input type="number" id="coinsAmountInput" value="1000" placeholder="Anzahl Coins...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modalCoins')">Abbrechen</button>
+          <button class="btn btn-success" onclick="confirmGiveCoins()">Coins gutschreiben</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: EMERGENCY KILL (NOT-AUS) -->
+    <div id="modalEmergency" class="modal-overlay hidden">
+      <div class="modal-card modal-card-danger">
+        <div class="modal-header">
+          <h3 style="color: #f87171;">🚨 NOT-AUS BESTÄTIGEN</h3>
+          <button class="modal-close" onclick="closeModal('modalEmergency')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 1.05rem; font-weight: 600; margin-bottom: 8px;">Möchtest du den Minecraft-Server wirklich SOFORT NOTABSCHALTEN?</p>
+          <p class="text-muted">Der Server-Prozess wird sofort per Zwang getrennt. Alle Spieler fliegen vom Server und der 24/7 Auto-Neustart wird pausiert, bis du ihn wieder manuell startest.</p>
+          <div class="form-group">
+            <label>Notfall-Begründung:</label>
+            <input type="text" id="emergencyReasonInput" value="Manueller Not-Aus durch Web-Administrator" placeholder="Grund...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modalEmergency')">Abbrechen</button>
+          <button class="btn btn-danger" onclick="confirmEmergencyKill()">🚨 SOFORT NOTABSCHALTEN</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: KICK PLAYER -->
+    <div id="modalKick" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>⚠️ Spieler kicken</h3>
+          <button class="modal-close" onclick="closeModal('modalKick')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Möchtest du den Spieler <strong id="kickPlayerName" class="text-highlight">Spieler</strong> wirklich vom Server werfen?</p>
+          <div class="form-group">
+            <label>Kick-Grund:</label>
+            <input type="text" id="kickReasonInput" value="Vom Web-Administrator gekickt." placeholder="Grund angeben...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modalKick')">Abbrechen</button>
+          <button class="btn btn-warning" onclick="confirmKick()">Kicken</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: BAN PLAYER -->
+    <div id="modalBan" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🚫 Spieler bannen</h3>
+          <button class="modal-close" onclick="closeModal('modalBan')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Möchtest du <strong id="banPlayerName" class="text-danger">Spieler</strong> dauerhaft sperren?</p>
+          <div class="form-group">
+            <label>Bann-Grund:</label>
+            <input type="text" id="banReasonInput" value="Cheating / Unerlaubte Modifikationen" placeholder="Grund angeben...">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modalBan')">Abbrechen</button>
+          <button class="btn btn-danger" onclick="confirmBan()">Dauerhaft bannen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: NAMETAG & PRÄFIX -->
+    <div id="modalNametag" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>🏷️ Nametag für <span id="modalNametagPlayer" class="text-highlight">Spieler</span> anpassen</h3>
+          <button class="modal-close" onclick="closeModal('modalNametag')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>Vergib diesem Spieler einen individuellen Nametag, Rang-Titel oder Farben:</p>
+          <div class="form-group">
+            <label>Nametag / Präfix (z. B. <code>&8[&6👑 OWNER&8] &e</code>):</label>
+            <input type="text" id="modalTagInput" placeholder="&8[&6👑 OWNER&8] &e" oninput="updateTagPreview('modalTagInput', 'modalTagPreview')" style="font-family: monospace;">
+          </div>
+
+          <div style="margin-bottom: 12px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Vorschau:</span>
+            <span id="modalTagPreview" style="font-size: 1.05rem; font-weight: bold;">[👑 OWNER] Spieler</span>
+          </div>
+
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;">
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&6&l👑 OWNER&8] &e')">👑 [OWNER]</button>
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&c&l🛡️ ADMIN&8] &c')">🛡️ [ADMIN]</button>
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&a&l⭐ VIP&8] &a')">⭐ [VIP]</button>
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&b&l🔥 MVP&8] &b')">🔥 [MVP]</button>
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&e&l⚔️ CHAMP&8] &e')">⚔️ [CHAMP]</button>
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&d&l⚡ KING&8] &d')">⚡ [KING]</button>
+            <button class="btn btn-sm btn-secondary" onclick="setPresetTag('modalTagInput', '&8[&7🎮 SPIELER&8] &7')">🎮 [SPIELER]</button>
+          </div>
+
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <button class="btn btn-sm" style="background: #eab308; color: black;" onclick="insertColorCode('modalTagInput', '&6')">&6 Gold</button>
+            <button class="btn btn-sm" style="background: #ef4444; color: white;" onclick="insertColorCode('modalTagInput', '&c')">&c Rot</button>
+            <button class="btn btn-sm" style="background: #22c55e; color: black;" onclick="insertColorCode('modalTagInput', '&a')">&a Grün</button>
+            <button class="btn btn-sm" style="background: #06b6d4; color: black;" onclick="insertColorCode('modalTagInput', '&b')">&b Aqua</button>
+            <button class="btn btn-sm" style="background: #ec4899; color: white;" onclick="insertColorCode('modalTagInput', '&d')">&d Pink</button>
+            <button class="btn btn-sm" style="background: #facc15; color: black;" onclick="insertColorCode('modalTagInput', '&e')">&e Gelb</button>
+            <button class="btn btn-sm" style="background: #ffffff; color: black;" onclick="insertColorCode('modalTagInput', '&f')">&f Weiß</button>
+            <button class="btn btn-sm btn-secondary" onclick="insertColorCode('modalTagInput', '&l')"><b>&l Fett</b></button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal('modalNametag')">Abbrechen</button>
+          <button class="btn btn-secondary" onclick="confirmResetModalTag()">Zurücksetzen</button>
+          <button class="btn btn-primary" onclick="confirmModalTag()">Nametag anwenden</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
