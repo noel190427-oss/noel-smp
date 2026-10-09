@@ -54,8 +54,14 @@
       <!-- REGISTER FORM (Hidden by default) -->
       <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
         <div class="form-group">
-          <label>E-Mail-Adresse (von dir oder deinem Freund)</label>
-          <input type="email" id="regEmail" placeholder="freund@gmail.com" required autocomplete="email">
+          <label>Minecraft-Benutzername (Java oder Bedrock)</label>
+          <input type="text" id="regUsername" placeholder="z. B. Noel190427 oder .Noel" required autocomplete="nickname">
+          <small style="color: var(--text-muted); font-size: 11px; margin-top: 4px; display: block;">Wird für den Inhaber-Rang [👑 INHABER] im Chat & Nametag verwendet.</small>
+        </div>
+
+        <div class="form-group">
+          <label>E-Mail-Adresse</label>
+          <input type="email" id="regEmail" placeholder="deine-mail@gmail.com" required autocomplete="email">
         </div>
 
         <div class="form-group">

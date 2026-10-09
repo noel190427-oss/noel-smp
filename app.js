@@ -116,6 +116,7 @@ async function handleLogin(event) {
 // 2. Handle Register (for friends/admins)
 async function handleRegister(event) {
   event.preventDefault();
+  const username = document.getElementById('regUsername').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPassword').value;
   const passwordConfirm = document.getElementById('regPasswordConfirm').value;
@@ -123,6 +124,12 @@ async function handleRegister(event) {
   const errorBox = document.getElementById('regError');
 
   errorBox.classList.add('hidden');
+
+  if (!username) {
+    errorBox.textContent = 'Bitte gib deinen Minecraft-Benutzernamen ein!';
+    errorBox.classList.remove('hidden');
+    return;
+  }
 
   if (password !== passwordConfirm) {
     errorBox.textContent = 'Die Passwörter stimmen nicht überein!';
@@ -134,7 +141,7 @@ async function handleRegister(event) {
     const res = await fetch(getApiUrl('/api/auth/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, rememberMe })
+      body: JSON.stringify({ username, email, password, rememberMe })
     });
     const data = await res.json();
 
