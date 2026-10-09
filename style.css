@@ -777,3 +777,172 @@ input:checked + .slider:before { transform: translateX(24px); }
 .hidden {
   display: none !important;
 }
+
+/* =========================================================
+   RESPONSIVE DESIGN FOR IPHONE & MOBILE SCREENS (max-width: 768px)
+   ========================================================= */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 12px 10px 80px 10px;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* 1. Mobile Navbar */
+  .navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+
+  .brand {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .nav-status-group {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .server-controls {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .server-controls .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 0.85rem;
+  }
+
+  .server-controls .btn-emergency {
+    grid-column: span 2;
+  }
+
+  .user-profile-menu {
+    border-left: none;
+    padding-left: 0;
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  /* 2. Mobile Metrics Cards */
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .metric-card {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+
+  .metric-icon {
+    padding: 10px;
+    font-size: 22px;
+  }
+
+  .metric-val {
+    font-size: 1.15rem;
+  }
+
+  /* 3. Mobile Tabs */
+  .tab-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+    padding-bottom: 4px;
+    margin-bottom: 14px;
+  }
+
+  .tab-btn {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  /* 4. Mobile Content & Cards */
+  .card {
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .card-header h3 {
+    font-size: 1.1rem;
+  }
+
+  /* 5. Mobile Forms & Inputs */
+  .form-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+
+  /* 6. Mobile Nametag Editor */
+  .nametag-editor-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .preset-pills, .color-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .preset-pill, .color-btn {
+    flex: 1 1 calc(50% - 6px);
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 0.8rem;
+  }
+
+  /* 7. Mobile Table & Lists */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive table {
+    min-width: 480px;
+  }
+
+  /* 8. Mobile Console Box */
+  .console-box {
+    height: 280px;
+    font-size: 0.75rem;
+    padding: 10px;
+  }
+
+  /* 9. Mobile Modals */
+  .modal-card {
+    width: 95%;
+    padding: 18px;
+  }
+
+  /* 10. Mobile Login Screen */
+  .login-card {
+    padding: 20px 16px;
+    margin: 10px;
+  }
+}

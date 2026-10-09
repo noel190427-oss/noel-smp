@@ -9,32 +9,41 @@ let activeBackendUrl = localStorage.getItem('mc_backend_url') || '';
 
 function getApiBase() {
   if (activeBackendUrl) return activeBackendUrl.replace(/\/$/, '');
-  if (window.location.hostname.includes('github.io') || window.location.protocol === 'file:') {
-    // If on mobile / external GitHub Pages, use the server PC's network address first, then localhost
+  if (window.location.hostname.includes('github.io')) {
+    // When opened from GitHub Pages (HTTPS), we use the HTTPS Cloudflare Tunnel
+    return 'https://wives-ross-mozilla-vincent.trycloudflare.com';
+  }
+  if (window.location.protocol === 'file:') {
     return 'http://192.168.2.165:3000';
   }
   return '';
 }
 
 async function autoDiscoverBackend() {
-  if (!window.location.hostname.includes('github.io') && window.location.protocol !== 'file:') {
-    return;
-  }
   if (localStorage.getItem('mc_backend_url')) {
     activeBackendUrl = localStorage.getItem('mc_backend_url');
     return;
   }
 
-  const candidateEndpoints = [
-    'http://192.168.2.165:3000',
-    'http://localhost:3000',
-    'http://noelsmp.duckdns.org:3000'
-  ];
+  const isHttps = window.location.protocol === 'https:' || window.location.hostname.includes('github.io');
+  const candidateEndpoints = isHttps
+    ? [
+        'https://wives-ross-mozilla-vincent.trycloudflare.com',
+        'http://192.168.2.165:3000',
+        'http://localhost:3000'
+      ]
+    : [
+        '',
+        'http://localhost:3000',
+        'http://192.168.2.165:3000',
+        'https://wives-ross-mozilla-vincent.trycloudflare.com'
+      ];
 
   for (const url of candidateEndpoints) {
+    if (!url) continue;
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1800);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
       const res = await fetch(`${url}/api/auth/verify`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -66,9 +75,44 @@ function getWsUrl(token) {
   return `${protocol}//${window.location.host}?token=${encodeURIComponent(token)}`;
 }
 
+function updateConnectionStatusDisplay() {
+  const el = document.getElementById('connStatusText');
+  if (!el) return;
+  const currentBase = getApiBase();
+  if (!currentBase) {
+    el.textContent = 'Lokal (Standard)';
+    el.style.color = '#38bdf8';
+  } else if (currentBase.includes('trycloudflare.com')) {
+    el.textContent = 'Cloudflare HTTPS Tunnel';
+    el.style.color = '#10b981';
+  } else {
+    el.textContent = currentBase;
+    el.style.color = '#a78bfa';
+  }
+}
+
+function promptServerUrl() {
+  const current = getApiBase() || 'https://wives-ross-mozilla-vincent.trycloudflare.com';
+  const newUrl = prompt('Server-Adresse (URL) für das Dashboard eingeben:\n\nBeispiel: https://wives-ross-mozilla-vincent.trycloudflare.com oder http://192.168.2.165:3000', current);
+  if (newUrl !== null) {
+    const trimmed = newUrl.trim();
+    if (trimmed) {
+      activeBackendUrl = trimmed;
+      localStorage.setItem('mc_backend_url', trimmed);
+    } else {
+      activeBackendUrl = '';
+      localStorage.removeItem('mc_backend_url');
+    }
+    updateConnectionStatusDisplay();
+    alert('Server-Adresse aktualisiert! Seite wird neu geladen.');
+    window.location.reload();
+  }
+}
+
 // Initial Setup
 document.addEventListener('DOMContentLoaded', async () => {
   await autoDiscoverBackend();
+  updateConnectionStatusDisplay();
   if (authToken) {
     const isValid = await verifyToken(authToken);
     if (isValid) {

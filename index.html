@@ -2,7 +2,10 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0f172a">
   <title>Minecraft 24/7 Crossplay Dashboard, Shop & Anti-Cheat</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,6 +90,12 @@
           <span>🚀 Neues Konto erstellen & Einloggen</span>
         </button>
       </form>
+
+      <div class="server-conn-status" style="margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border-color, rgba(255,255,255,0.1)); text-align: center; font-size: 11px; color: var(--text-muted, #94a3b8);">
+        <span>📡 Server-Verbindung: </span>
+        <strong id="connStatusText" style="color: #38bdf8;">Auto (Cloudflare HTTPS)</strong>
+        <a href="javascript:void(0)" onclick="promptServerUrl()" style="margin-left: 6px; color: #a78bfa; text-decoration: underline;">Ändern</a>
+      </div>
     </div>
   </div>
 
