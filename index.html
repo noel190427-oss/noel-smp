@@ -196,7 +196,10 @@
       <!-- Navigation Tabs -->
       <div class="tab-nav">
         <button class="tab-btn active" onclick="switchTab('players')">
-          <span>👥 Spieler & Rechte-Vergabe (<span id="tabPlayerBadge">0</span>)</span>
+          <span>👥 Spieler & Rechte (<span id="tabPlayerBadge">0</span>)</span>
+        </button>
+        <button class="tab-btn" onclick="switchTab('world')">
+          <span>☀️ Welt & Zeit</span>
         </button>
         <button class="tab-btn" onclick="switchTab('shopinfo')">
           <span>🛍️ In-Game Shop (/shop)</span>
@@ -314,6 +317,115 @@
               <button class="btn btn-sm" style="background: #94a3b8; color: black; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&7')">&7 Grau</button>
               <button class="btn btn-sm" style="background: #1e293b; color: white; border: 1px solid #475569; font-weight: bold;" onclick="insertColorCode('quickTagInput', '&8')">&8 Dunkelgrau</button>
               <button class="btn btn-sm btn-secondary" onclick="insertColorCode('quickTagInput', '&l')"><b>&l Fett</b></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: WORLD & TIME CONTROL -->
+      <section id="tab-world" class="tab-panel">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h2>☀️ Minecraft Welt-, Zeit- & Wetter-Steuerung</h2>
+              <p class="text-muted">Ändere sofort per Klick die Ingame-Zeit, das Wetter oder halte den Tageslichtzyklus an.</p>
+            </div>
+          </div>
+
+          <!-- TIME CONTROLS -->
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 1.1rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span>⏰ Ingame-Zeit einstellen</span>
+            </h3>
+            <div class="world-time-grid">
+              <button class="time-card-btn" onclick="setServerTime('day')">
+                <span class="time-icon">🌅</span>
+                <div class="time-details">
+                  <strong>Tag (Day)</strong>
+                  <small>1.000 Ticks • 07:00 Uhr</small>
+                </div>
+              </button>
+
+              <button class="time-card-btn" onclick="setServerTime('noon')">
+                <span class="time-icon">☀️</span>
+                <div class="time-details">
+                  <strong>Mittag (Noon)</strong>
+                  <small>6.000 Ticks • 12:00 Uhr</small>
+                </div>
+              </button>
+
+              <button class="time-card-btn" onclick="setServerTime('12000')">
+                <span class="time-icon">🌇</span>
+                <div class="time-details">
+                  <strong>Sonnenuntergang (Sunset)</strong>
+                  <small>12.000 Ticks • 18:00 Uhr</small>
+                </div>
+              </button>
+
+              <button class="time-card-btn" onclick="setServerTime('night')">
+                <span class="time-icon">🌙</span>
+                <div class="time-details">
+                  <strong>Nacht (Night)</strong>
+                  <small>13.000 Ticks • 19:00 Uhr</small>
+                </div>
+              </button>
+
+              <button class="time-card-btn" onclick="setServerTime('midnight')">
+                <span class="time-icon">🌌</span>
+                <div class="time-details">
+                  <strong>Mitternacht (Midnight)</strong>
+                  <small>18.000 Ticks • 00:00 Uhr</small>
+                </div>
+              </button>
+
+              <button class="time-card-btn" onclick="setServerTime('23000')">
+                <span class="time-icon">🌄</span>
+                <div class="time-details">
+                  <strong>Sonnenaufgang (Sunrise)</strong>
+                  <small>23.000 Ticks • 05:00 Uhr</small>
+                </div>
+              </button>
+            </div>
+
+            <!-- Custom Ticks Input -->
+            <div style="margin-top: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+              <span style="font-size: 0.9rem; font-weight: 600;">🔢 Eigene Zeit (Ticks 0–24000):</span>
+              <input type="number" id="customTimeInput" placeholder="z. B. 6000" min="0" max="24000" style="width: 140px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-dark); color: white;">
+              <button class="btn btn-secondary btn-sm" onclick="setCustomServerTime()">Zeit anwenden</button>
+            </div>
+          </div>
+
+          <!-- WEATHER & DAYLIGHT CYCLE GRID -->
+          <div class="updater-grid" style="margin-top: 20px;">
+            <!-- Wetter -->
+            <div class="updater-box">
+              <h3>🌦️ Wetter-Steuerung</h3>
+              <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 12px;">Passe das aktuelle Wetter auf der gesamten Map an.</p>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="setServerWeather('clear')">
+                  <span>☀️ Klar & Sonnig (/weather clear)</span>
+                </button>
+                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="setServerWeather('rain')">
+                  <span>🌧️ Regen (/weather rain)</span>
+                </button>
+                <button class="btn btn-secondary" style="justify-content: flex-start;" onclick="setServerWeather('thunder')">
+                  <span>⚡ Gewitter & Sturm (/weather thunder)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tageslicht-Zyklus -->
+            <div class="updater-box">
+              <h3>⏱️ Tageslichtzyklus (doDaylightCycle)</h3>
+              <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 12px;">Bestimme, ob die Sonne und der Mond weiterwandern oder die Zeit einfriert.</p>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <button class="btn btn-success" style="justify-content: flex-start;" onclick="setDaylightCycle(true)">
+                  <span>▶️ Zeit normal weiterlaufen lassen (Aktiv)</span>
+                </button>
+                <button class="btn btn-danger" style="justify-content: flex-start;" onclick="setDaylightCycle(false)">
+                  <span>⏸️ Zeit einfrieren / anhalten (Pausiert)</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

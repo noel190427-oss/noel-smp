@@ -11,7 +11,7 @@ function getApiBase() {
   if (activeBackendUrl) return activeBackendUrl.replace(/\/$/, '');
   if (window.location.hostname.includes('github.io')) {
     // When opened from GitHub Pages (HTTPS), we use the HTTPS Cloudflare Tunnel
-    return 'https://wives-ross-mozilla-vincent.trycloudflare.com';
+    return 'https://bedford-activists-affairs-volt.trycloudflare.com';
   }
   if (window.location.protocol === 'file:') {
     return 'http://192.168.2.165:3000';
@@ -28,7 +28,7 @@ async function autoDiscoverBackend() {
   const isHttps = window.location.protocol === 'https:' || window.location.hostname.includes('github.io');
   const candidateEndpoints = isHttps
     ? [
-        'https://wives-ross-mozilla-vincent.trycloudflare.com',
+        'https://bedford-activists-affairs-volt.trycloudflare.com',
         'http://192.168.2.165:3000',
         'http://localhost:3000'
       ]
@@ -36,7 +36,7 @@ async function autoDiscoverBackend() {
         '',
         'http://localhost:3000',
         'http://192.168.2.165:3000',
-        'https://wives-ross-mozilla-vincent.trycloudflare.com'
+        'https://bedford-activists-affairs-volt.trycloudflare.com'
       ];
 
   for (const url of candidateEndpoints) {
@@ -92,8 +92,8 @@ function updateConnectionStatusDisplay() {
 }
 
 function promptServerUrl() {
-  const current = getApiBase() || 'https://wives-ross-mozilla-vincent.trycloudflare.com';
-  const newUrl = prompt('Server-Adresse (URL) für das Dashboard eingeben:\n\nBeispiel: https://wives-ross-mozilla-vincent.trycloudflare.com oder http://192.168.2.165:3000', current);
+  const current = getApiBase() || 'https://bedford-activists-affairs-volt.trycloudflare.com';
+  const newUrl = prompt('Server-Adresse (URL) für das Dashboard eingeben:\n\nBeispiel: https://bedford-activists-affairs-volt.trycloudflare.com oder http://192.168.2.165:3000', current);
   if (newUrl !== null) {
     const trimmed = newUrl.trim();
     if (trimmed) {
@@ -997,4 +997,71 @@ async function resetQuickNametag() {
     alert('Fehler: ' + e.message);
   }
 }
+
+// ==========================================================================
+// WORLD TIME & WEATHER CONTROLS
+// ==========================================================================
+async function setServerTime(timeSpec) {
+  try {
+    const res = await authFetch('/api/server/time', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ time: timeSpec })
+    });
+    const data = await res.json();
+    if (data.success) {
+      addConsoleLog(`☀️ [Zeit-Steuerung] Ingame-Zeit auf "${timeSpec}" gesetzt.`);
+    } else {
+      alert('Fehler: ' + (data.error || 'Konnte Zeit nicht setzen'));
+    }
+  } catch (e) {
+    alert('Fehler: ' + e.message);
+  }
+}
+
+async function setCustomServerTime() {
+  const val = document.getElementById('customTimeInput').value.trim();
+  if (!val) {
+    alert('Bitte gib einen Tick-Wert zwischen 0 und 24000 ein (z. B. 6000 für Mittag).');
+    return;
+  }
+  await setServerTime(val);
+}
+
+async function setServerWeather(weatherType) {
+  try {
+    const res = await authFetch('/api/server/weather', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weather: weatherType })
+    });
+    const data = await res.json();
+    if (data.success) {
+      addConsoleLog(`🌦️ [Wetter-Steuerung] Wetter auf "${weatherType}" gesetzt.`);
+    } else {
+      alert('Fehler: ' + (data.error || 'Konnte Wetter nicht ändern'));
+    }
+  } catch (e) {
+    alert('Fehler: ' + e.message);
+  }
+}
+
+async function setDaylightCycle(enabled) {
+  try {
+    const res = await authFetch('/api/server/daylight-cycle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled })
+    });
+    const data = await res.json();
+    if (data.success) {
+      addConsoleLog(`⏱️ [Tageslichtzyklus] doDaylightCycle auf "${enabled}" gesetzt.`);
+    } else {
+      alert('Fehler: ' + (data.error || 'Konnte Tageslichtzyklus nicht ändern'));
+    }
+  } catch (e) {
+    alert('Fehler: ' + e.message);
+  }
+}
+
 

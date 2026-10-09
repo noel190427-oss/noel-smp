@@ -945,4 +945,74 @@ input:checked + .slider:before { transform: translateX(24px); }
     padding: 20px 16px;
     margin: 10px;
   }
+
+  /* 11. Mobile World Time Grid */
+  .world-time-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .time-card-btn {
+    padding: 10px 8px !important;
+  }
+  .time-icon {
+    font-size: 1.5rem !important;
+  }
 }
+
+/* ==========================================================================
+   WORLD TIME & WEATHER CONTROLS
+   ========================================================================== */
+.world-time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.time-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 14px 16px;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.time-card-btn:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
+}
+
+.time-card-btn:active {
+  transform: translateY(0);
+}
+
+.time-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.time-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-details strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.time-details small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
