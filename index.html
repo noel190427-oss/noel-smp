@@ -25,6 +25,13 @@
         <button id="tabBtnRegister" class="auth-toggle-btn" onclick="switchAuthMode('register')">Konto registrieren</button>
       </div>
 
+      <!-- Server Endpoint Selector (Visible when hosted on GitHub Pages) -->
+      <div id="serverEndpointBar" style="display: none; margin-bottom: 15px; padding: 10px 14px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; font-size: 13px; text-align: center;">
+        <span style="color: var(--text-muted);">🔗 Server-Ziel: </span>
+        <strong id="currentBackendDisplay" style="color: #38bdf8;">http://localhost:3000</strong>
+        <a href="javascript:void(0)" onclick="promptChangeBackend()" style="margin-left: 8px; color: #fbbf24; font-weight: 600; text-decoration: underline;">[Ändern]</a>
+      </div>
+
       <!-- LOGIN FORM -->
       <form id="loginForm" onsubmit="handleLogin(event)">
         <div class="form-group">

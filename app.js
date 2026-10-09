@@ -5,8 +5,58 @@ let currentAcAlerts = [];
 let selectedPlayerForAction = null;
 let authToken = localStorage.getItem('mc_admin_token') || sessionStorage.getItem('mc_admin_token') || null;
 
+function getApiBase() {
+  const custom = localStorage.getItem('mc_backend_url');
+  if (custom) return custom.replace(/\/$/, '');
+  if (window.location.hostname.includes('github.io') || window.location.protocol === 'file:') {
+    return 'http://localhost:3000';
+  }
+  return '';
+}
+
+function getApiUrl(url) {
+  const base = getApiBase();
+  return base ? `${base}${url}` : url;
+}
+
+function getWsUrl(token) {
+  const base = getApiBase();
+  if (base) {
+    const wsProto = base.startsWith('https') ? 'wss:' : 'ws:';
+    const host = base.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    return `${wsProto}//${host}?token=${encodeURIComponent(token)}`;
+  }
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}?token=${encodeURIComponent(token)}`;
+}
+
+function checkAndDisplayBackendBar() {
+  const isExternal = window.location.hostname.includes('github.io') || window.location.protocol === 'file:';
+  const bar = document.getElementById('serverEndpointBar');
+  const display = document.getElementById('currentBackendDisplay');
+  if (bar && isExternal) {
+    bar.style.display = 'block';
+    if (display) display.textContent = getApiBase() || 'http://localhost:3000';
+  }
+}
+
+function promptChangeBackend() {
+  const current = getApiBase();
+  const input = prompt('Gib die Adresse deines laufenden Minecraft-Webservers ein:\n(z.B. http://localhost:3000 oder deine IP http://192.168.2.165:3000)', current);
+  if (input !== null) {
+    const clean = input.trim();
+    if (clean) {
+      localStorage.setItem('mc_backend_url', clean);
+    } else {
+      localStorage.removeItem('mc_backend_url');
+    }
+    window.location.reload();
+  }
+}
+
 // Initial Setup
 document.addEventListener('DOMContentLoaded', async () => {
+  checkAndDisplayBackendBar();
   if (authToken) {
     const isValid = await verifyToken(authToken);
     if (isValid) {
@@ -36,7 +86,7 @@ function switchAuthMode(mode) {
 
 async function verifyToken(token) {
   try {
-    const res = await fetch('/api/auth/verify', {
+    const res = await fetch(getApiUrl('/api/auth/verify'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
@@ -62,7 +112,7 @@ async function handleLogin(event) {
   errorBox.classList.add('hidden');
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(getApiUrl('/api/auth/login'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, rememberMe })
@@ -106,7 +156,7 @@ async function handleRegister(event) {
   }
 
   try {
-    const res = await fetch('/api/auth/register', {
+    const res = await fetch(getApiUrl('/api/auth/register'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, rememberMe })
@@ -165,7 +215,7 @@ async function authFetch(url, options = {}) {
   if (authToken) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(getApiUrl(url), { ...options, headers });
   if (response.status === 401 || response.status === 403) {
     handleLogout();
     throw new Error('Sitzung abgelaufen. Bitte neu einloggen.');
@@ -176,8 +226,7 @@ async function authFetch(url, options = {}) {
 // WEBSOCKET
 function connectWebSocket() {
   if (!authToken) return;
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}?token=${encodeURIComponent(authToken)}`;
+  const wsUrl = getWsUrl(authToken);
   socket = new WebSocket(wsUrl);
 
   socket.onopen = () => {
